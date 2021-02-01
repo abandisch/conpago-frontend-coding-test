@@ -1,15 +1,15 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import PeopleTable from '../components/PeopleTable'
-import { getPeople } from '../store/actions'
+import { fetchPeople } from '../store/reducers'
 
-function App({ getPeople, people, nextURL, prevURL, isLoading }) {
+function App({ fetchPeople, people, nextURL, prevURL, isLoading }) {
   React.useEffect(() => {
-    getPeople()
+    fetchPeople()
   }, []) // eslint-disable-line
 
   const handleGetPeople = url => () => {
-    getPeople(url)
+    fetchPeople({ url })
   }
 
   const hasPrevURL = !!prevURL
@@ -27,7 +27,7 @@ function App({ getPeople, people, nextURL, prevURL, isLoading }) {
 
 const mapStateToProps = state => {
   return {
-    isLoading: state.isLoading,
+    isLoading: state.apiStatus !== 'idle',
     people: state.people,
     nextURL: state.nextURL,
     prevURL: state.prevURL
@@ -36,5 +36,5 @@ const mapStateToProps = state => {
 
 export default connect(
   mapStateToProps,
-  { getPeople }
+  { fetchPeople }
 )(App)

@@ -1,39 +1,38 @@
-import {
-  IS_LOADING,
-  GET_PEOPLE_OK,
-  GET_PEOPLE_FAIL
-} from './actionTypes'
+import starWarsApi from '../api'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
 const initialState = {
   people: [],
   nextURL: '',
   prevURL: '',
-  isLoading: false
+  apiStatus: 'idle'
 }
 
-const starWarsPeople = (state = initialState, action) => {
-  switch (action.type) {
-    case IS_LOADING:
-      return {
-        ...state,
-        isLoading: true
-      }
-    case GET_PEOPLE_FAIL:
-      return {
-        ...state,
-        isLoading: false
-      }
-    case GET_PEOPLE_OK:
-      const { people, nextURL, prevURL } = action
-      return {
-        people,
-        nextURL,
-        prevURL,
-        isLoading: false
-      }
-    default:
-      return { ...state }
-  }
-}
 
-export default starWarsPeople
+export const fetchPeople = createAsyncThunk('starwars/fetchPeople', async (urlData) => {
+  const { url } = urlData ?? { url : '' };
+  const peopleData = await starWarsApi.getPeople(url)
+  return peopleData
+})
+
+const slice = createSlice({
+  name: 'starwars',
+  initialState,
+  extraReducers: {
+    [fetchPeople.pending]: (state) => {
+      state.apiStatus = 'pending'
+    },
+    [fetchPeople.fulfilled]: (state, action) => {
+      const { results, next, previous } = action.payload
+      state.people = results
+      state.nextURL = next
+      state.prevURL = previous
+      state.apiStatus = 'idle'
+    },
+    [fetchPeople.rejected]: (state) => {
+      state.apiStatus = 'idle'
+    },
+  },
+});
+
+export default slice.reducer;
